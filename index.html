@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Ювелірний калькулятор</title>
+<style>
+body {font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px;}
+h1 {text-align:center; color:#333;}
+.weave-container {text-align:center; margin-bottom:20px;}
+select {padding:8px 12px; font-size:16px; border-radius:8px; border:1px solid #ccc;}
+.container {max-width:900px; margin:auto; display:flex; gap:20px; flex-wrap:wrap;}
+.card {background:white; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.1); padding:20px; flex:1; min-width:300px;}
+label {display:block; margin-top:10px; font-weight:bold;}
+input, button {width:100%; padding:8px; margin-top:5px; border-radius:8px; border:1px solid #ccc; font-size:16px;}
+button {background:#4CAF50; color:white; cursor:pointer; margin-top:15px;}
+button:hover {background:#45a049;}
+</style>
+</head>
+<body>
+<h1>Ювелірний калькулятор</h1>
+
+<div class="weave-container">
+  <label for="weave">Тип плетіння:</label>
+  <select id="weave">
+    <option value="bismark">Бісмарк</option>
+    <option value="ramzes">Рамзес</option>
+    <option value="venecia">Венеція</option>
+    <option value="roza">Роза</option>
+    <option value="kardinal">Кардинал</option>
+    <option value="kozatskyi">Козацький</option>
+    <option value="yakirne">Якірне</option>
+  </select>
+</div>
+
+<div class="container">
+
+<div class="card">
+<h2>Довжина та вага → решта</h2>
+<label for="length1">Довжина (см):</label>
+<input type="number" id="length1" step="0.1">
+
+<label for="weight1">Вага без угару (г):</label>
+<input type="number" id="weight1" step="0.01">
+
+<label for="wire1">Товщина проволоки (мм):</label>
+<input type="number" id="wire1" step="0.01" readonly>
+
+<label for="rod1">Товщина ригелю (мм):</label>
+<input type="number" id="rod1" step="0.01" readonly>
+
+<label for="weightLoss1">Вага з угаром (г):</label>
+<input type="number" id="weightLoss1" step="0.01" readonly>
+
+<button onclick="calcFromLengthWeight()">Розрахувати</button>
+</div>
+
+<div class="card">
+<h2>Проволока та ригель → решта</h2>
+<label for="wire2">Товщина проволоки (мм):</label>
+<input type="number" id="wire2" step="0.01">
+
+<label for="rod2">Товщина ригелю (мм):</label>
+<input type="number" id="rod2" step="0.01">
+
+<label for="length2">Довжина (см):</label>
+<input type="number" id="length2" step="0.1" readonly>
+
+<label for="weight2">Вага без угару (г):</label>
+<input type="number" id="weight2" step="0.01" readonly>
+
+<label for="weightLoss2">Вага з угаром (г):</label>
+<input type="number" id="weightLoss2" step="0.01" readonly>
+
+<button onclick="calcFromWireRod()">Розрахувати</button>
+</div>
+
+</div>
+
+<script>
+const weaves = {
+  bismark:   { wire:1.3, rod:3.5, length:25, weight:27.4 },
+  ramzes:    { wire:2.0, rod:6.0, length:22, weight:108 },
+  venecia:   { wire:0.65, rod:3.0, length:52, weight:26.7 },
+  roza:      { wire:0.4, rod:2.0, length:50, weight:10.7 },
+  kardinal:  { wire:1.3, rod:4.9, length:22, weight:49.1 },
+  kozatskyi: { wire:0.7, rod:2.0, length:50, weight:19.7 },
+  yakirne:   { wire:1.7, rod:4.0, length:60, weight:48.5 }
+};
+
+const waste = 0.08;
+let baseData = {};
+
+const weaveSelect = document.getElementById('weave');
+const length1 = document.getElementById('length1');
+const weight1 = document.getElementById('weight1');
+const wire1 = document.getElementById('wire1');
+const rod1 = document.getElementById('rod1');
+const weightLoss1 = document.getElementById('weightLoss1');
+
+const wire2 = document.getElementById('wire2');
+const rod2 = document.getElementById('rod2');
+const length2 = document.getElementById('length2');
+const weight2 = document.getElementById('weight2');
+const weightLoss2 = document.getElementById('weightLoss2');
+
+function loadWeave() {
+  baseData = weaves[weaveSelect.value];
+
+  length1.value = baseData.length;
+  weight1.value = baseData.weight.toFixed(2);
+  wire1.value = baseData.wire;
+  rod1.value = baseData.rod;
+  weightLoss1.value = (baseData.weight*(1+waste)).toFixed(2);
+
+  wire2.value = baseData.wire;
+  rod2.value = baseData.rod;
+  length2.value = baseData.length;
+  weight2.value = baseData.weight.toFixed(2);
+  weightLoss2.value = (baseData.weight*(1+waste)).toFixed(2);
+}
+
+weaveSelect.addEventListener('change', loadWeave);
+
+// Лівий блок
+function calcFromLengthWeight() {
+  let l = parseFloat(length1.value) || baseData.length;
+  let w = parseFloat(weight1.value) || baseData.weight;
+  let ratio = l / baseData.length;
+  wire1.value = (baseData.wire*ratio).toFixed(2);
+  rod1.value = (baseData.rod*ratio).toFixed(2);
+  weight1.value = w.toFixed(2);
+  weightLoss1.value = (w*(1+waste)).toFixed(2);
+}
+
+// Правий блок
+function calcFromWireRod() {
+  let wireVal = parseFloat(wire2.value) || baseData.wire;
+  let rodVal = parseFloat(rod2.value) || baseData.rod;
+  let ratioWire = wireVal / baseData.wire;
+  let ratioRod = rodVal / baseData.rod;
+  let ratio = (ratioWire + ratioRod)/2; // усереднюємо масштаб
+  length2.value = (baseData.length*ratio).toFixed(1);
+  let w = baseData.weight*ratio;
+  weight2.value = w.toFixed(2);
+  weightLoss2.value = (w*(1+waste)).toFixed(2);
+}
+
+// Ініціалізація
+loadWeave();
+</script>
+</body>
+</html>
